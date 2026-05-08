@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+*.egg
+
+# Caches and outputs
+cache/
+.cache/
+*.log
+
+# Model weights (never commit)
+*.safetensors
+*.bin
+*.pt
+*.pth
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+
+# Eval outputs (large JSON dumps)
+results_*.json
+eval_results/

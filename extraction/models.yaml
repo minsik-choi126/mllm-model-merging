@@ -1,0 +1,74 @@
+# VLM ↔ LLM model pairs.
+#
+# Each entry pairs a vision-language model with the text-only LLM that the
+# vision team most likely started from. Shape fields describe the LLM /
+# VLM-text-backbone (not the vision tower).
+
+model_pairs:
+  # === Qwen2.5-VL-7B / Qwen2.5-7B-Instruct ===
+  qwen25vl_7b:
+    base: "Qwen/Qwen2.5-7B"
+    vlm: "Qwen/Qwen2.5-VL-7B-Instruct"
+    llm: "Qwen/Qwen2.5-7B-Instruct"
+    num_layers: 28
+    num_heads: 28
+    num_kv_heads: 4         # GQA
+    head_dim: 128
+    hidden_size: 3584
+    intermediate_size: 18944
+    role: "primary"
+    notes: "Full fine-tune VLM. Strong text-side degradation, esp. on math/reasoning."
+
+  # === Qwen3-VL-8B / Qwen3-8B ===
+  qwen3vl_8b:
+    vlm: "Qwen/Qwen3-VL-8B-Instruct"
+    llm: "Qwen/Qwen3-8B"
+    num_layers: 36
+    num_heads: 32
+    num_kv_heads: 8         # GQA
+    head_dim: 128
+    hidden_size: 4096
+    intermediate_size: 14336
+    role: "secondary"
+    notes: "Cross-generation control."
+
+  # === InternVL2.5-8B / InternLM2.5-7B-chat ===
+  internvl25_8b:
+    vlm: "OpenGVLab/InternVL2_5-8B"
+    llm: "internlm/internlm2_5-7b-chat"
+    num_layers: 32
+    num_heads: 32
+    num_kv_heads: 8         # GQA
+    head_dim: 128
+    hidden_size: 4096
+    intermediate_size: 14336
+    role: "secondary"
+    notes: "Non-Qwen family. InternLM uses `language_model.output.weight` for the LM head."
+
+  # === LLaVA-LLaMA3-8B / Llama-3-8B-Instruct (LoRA-style training) ===
+  llava_llama3_8b:
+    vlm: "lmms-lab/llama3-llava-next-8b"
+    llm: "meta-llama/Meta-Llama-3-8B-Instruct"
+    num_layers: 32
+    num_heads: 32
+    num_kv_heads: 8         # GQA
+    head_dim: 128
+    hidden_size: 4096
+    intermediate_size: 14336
+    role: "secondary"
+    notes: "LoRA-trained VLM. Catastrophic drop on instruction-following / EQ-Bench."
+
+  # === Phi-3.5-Vision-Instruct / Phi-3.5-mini-Instruct ===
+  phi35_vision:
+    vlm: "microsoft/Phi-3.5-vision-instruct"
+    llm: "microsoft/Phi-3.5-mini-instruct"
+    num_layers: 32
+    num_heads: 32
+    num_kv_heads: 32        # MHA (no GQA in Phi-3.5-mini)
+    head_dim: 96
+    hidden_size: 3072
+    intermediate_size: 8192
+    role: "secondary"
+    notes: "Full fine-tune VLM. Strongest MMLU-Pro drop in our measurements."
+
+default_pair: "qwen25vl_7b"

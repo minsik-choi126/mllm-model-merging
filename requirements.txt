@@ -1,0 +1,11 @@
+# Core extraction stack. Pinned-floor versions only — any modern release works.
+torch>=2.1
+transformers>=4.45
+safetensors>=0.4
+pyyaml>=6.0
+
+# For text eval, install lm-evaluation-harness separately:
+#   git clone https://github.com/EleutherAI/lm-evaluation-harness && pip install -e ./lm-evaluation-harness
+
+# For vision eval, install VLMEvalKit separately:
+#   git clone https://github.com/open-compass/VLMEvalKit && pip install -e ./VLMEvalKit
