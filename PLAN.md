@@ -60,7 +60,15 @@ should help most.
 
 ---
 
-## 2. Eval sanity — absolute-number reconciliation
+## 2. Eval sanity — absolute-number reconciliation, multi-framework
+
+### Why
+Multi-framework reproductions are how the paper Appendix defends "we tried
+several conventions, here's what each produced, here's why they differ".
+The diligence itself is a paper asset; field-wide framework drift is well
+known.
+
+
 
 ### Why
 Our current numbers are reported as deltas, but the absolute LLM scores
@@ -83,16 +91,26 @@ independent reference (Open LLM Leaderboard v2).
 
 ### Action
 
-- [ ] After mmlu_pro lands, cross-check vs OLL 42.87 — should be within 1 pt
-- [ ] Write `evaluation/text/protocol_audit.md` documenting:
-  - per-task lm-eval flags + n-shot + chat-template choice
+- [x] Run **two protocols in parallel** (community-default vs instruct-aware) on all 3 models
+      → `eval_8tasks.sh --protocol {default,instruct}` queue
+- [x] Write `evaluation/text/protocol_audit.md` documenting:
+  - per-task lm-eval flags + n-shot + chat-template choice (per protocol)
   - reference numbers (Qwen blog, OLL v2)
   - the framework-drift gap with sources
+- [ ] **OpenCompass cross-check** for the 3 tasks with biggest current drift
+  (`gsm8k_cot`, `gpqa_diamond_cot_zeroshot`, `mmlu_pro`). Goal: produce a
+  third column ("OpenCompass on our hardware") in the audit tables. If
+  OpenCompass reproduces Qwen-blog numbers within 1-2 pt, the framework
+  drift hypothesis closes — paper Appendix gets a clean triangle (Qwen
+  blog ↔ OLL v2 ↔ ours).
 - [ ] Add a `Qwen/Qwen2.5-7B` (base, **non-Instruct**) baseline run too — lets
-  us decompose `(VLM-LM - LLM-Instruct)` into `(VLM-LM - base) - (LLM-Instruct - base)`
+  us decompose `(VLM-LM - LLM-Instruct)` into
+  `(VLM-LM - base) - (LLM-Instruct - base)`
 - [ ] In paper, frame absolute numbers as "reproducible under lm-eval-harness
-  0.4.5; differs from Qwen-published OpenCompass numbers by a known framework
-  drift; cross-checked against OLL v2 for the tasks where OLL has a number"
+  0.4.5 under two protocols (community-default and instruct-aware), with an
+  OpenCompass cross-check on the most-drift-prone tasks. Where Qwen-published
+  numbers (OpenCompass) and ours (lm-eval) differ, the gap is reproducible
+  framework drift, not a setup bug."
 
 ---
 
