@@ -197,11 +197,19 @@ def load_state_dict(
     return sd
 
 
-def _sanitize_metadata(metadata: Optional[dict[str, str]]) -> Optional[dict[str, str]]:
-    """Safetensors metadata must be string-only."""
-    if metadata is None:
-        return None
-    return {str(k): str(v) for k, v in metadata.items()}
+def _sanitize_metadata(metadata: Optional[dict[str, str]]) -> dict[str, str]:
+    """Safetensors metadata must be string-only.
+
+    HuggingFace's safetensors loader requires a ``format`` key indicating the
+    framework (e.g. ``"pt"`` for PyTorch). Without it, ``from_pretrained``
+    raises ``Incompatible safetensors file. File metadata is not [...] but None``.
+    Always inject ``format=pt`` so saved checkpoints round-trip cleanly.
+    """
+    sanitized: dict[str, str] = {"format": "pt"}
+    if metadata:
+        for k, v in metadata.items():
+            sanitized[str(k)] = str(v)
+    return sanitized
 
 
 def save_text_model(

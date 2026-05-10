@@ -59,7 +59,7 @@ def _save_from_vlm_text_config(
             "No text_config found in the VLM config. Pass --llm-template instead."
         )
 
-    save_file(state_dict, str(out / "model.safetensors"))
+    save_file(state_dict, str(out / "model.safetensors"), metadata={"format": "pt"})
 
     tokenizer = _from_pretrained_with_local_fallback(
         AutoTokenizer,
