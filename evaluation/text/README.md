@@ -62,31 +62,53 @@ export LM_EVAL_BIN=/opt/conda/bin/lm_eval
 
 ## Run
 
+### Single model, single protocol
+
 ```bash
 bash eval_8tasks.sh \
     --model /path/to/Qwen2.5-7B-Instruct \
+    --protocol instruct \
     --gpu 0 \
-    --output eval_results/llm_qwen25_7b
+    --output eval_results/llm_qwen25_7b_instruct
 ```
 
-For an extracted VLM backbone:
+### Full matrix (multiple models × multiple protocols, parallel across GPUs)
+
+`run_eval_matrix.sh` is the canonical entry point for the LLM ↔ VLM-LM ↔
+merged comparison. It splits jobs round-robin across `--gpus` and emits
+per-protocol comparison tables when done.
 
 ```bash
-bash eval_8tasks.sh \
-    --model /path/to/extracted/qwen25vl_7b_lm \
-    --gpu 0 \
-    --output eval_results/vlm_qwen25vl_7b
+bash run_eval_matrix.sh \
+    --models llm:/path/to/Qwen2.5-7B-Instruct \
+             vlm_lm:/path/to/extracted/qwen25vl_7b_lm \
+             epull:/path/to/merged/qwen25_epull \
+    --protocols default,instruct \
+    --gpus 0,1 \
+    --output-root eval_results
 ```
 
-For the legacy ≈500-item `mmlu_pro` subsample (saves time at the cost of ±2-3 pt):
+This runs 6 jobs (3 models × 2 protocols), 3 per GPU. Each job lives in
+`<output-root>/<NAME>_<protocol>/`. After all jobs finish, the script invokes
+`parse_results.py` once per protocol, producing
+`<output-root>/comparison_<protocol>.txt`.
+
+Each task within a job is its own `lm_eval` invocation (per-task protocol
+differs), all writing into the job's output directory. Re-running a task
+adds a fresh JSON; the parser picks the most recent.
+
+### Optional knobs
 
 ```bash
-bash eval_8tasks.sh --model ... --output ... --mmlu-pro-limit 0.0416
-```
+# legacy ≈500-item mmlu_pro subsample (saves time, costs ±2-3 pt)
+bash run_eval_matrix.sh ... --mmlu-pro-limit 0.0416
 
-Each task is its own `lm_eval` invocation (the per-task protocols differ), all
-writing into the same `--output` directory. `parse_results.py` reads them
-recursively.
+# subset of tasks
+bash run_eval_matrix.sh ... --tasks gsm8k_cot,ifeval,gpqa_diamond_cot_zeroshot
+
+# skip the comparison step
+bash run_eval_matrix.sh ... --no-compare
+```
 
 ## Compare
 
