@@ -115,6 +115,59 @@ for gi in "${!GPU_ARR[@]}"; do
             mkdir -p "$out"
             echo "[$(date +%F\ %T)] [GPU${gpu}] start: ${name} -> ${out}" | tee -a "$QLOG"
 
+            # Skip tasks that already have a results JSON in this dir (re-runnable
+            # idempotently). lm-eval writes one results-*.json per (task) call;
+            # we look for tasks present in any prior JSON in the dir.
+            requested_clean=$(echo "$TASKS" | tr -d ' ')
+            missing=$(OUT_DIR="$out" REQ="$requested_clean" python -c '
+import json, glob, os
+out = os.environ["OUT_DIR"]
+done = set()
+for jf in glob.glob(os.path.join(out, "**", "results*.json"), recursive=True):
+    try:
+        d = json.load(open(jf))
+    except Exception:
+        continue
+    for t, vals in d.get("results", {}).items():
+        if t.startswith("mmlu_pro_"):
+            continue
+        if t.startswith("mmlu_") and t != "mmlu":
+            continue
+        if any(isinstance(v, float) and not k.endswith("_stderr")
+               for k, v in vals.items() if k != "alias"):
+            done.add(t)
+req = set(os.environ["REQ"].split(",")) - {""}
+print(",".join(sorted(req - done)))
+')
+            done_tasks=$(OUT_DIR="$out" REQ="$requested_clean" python -c '
+import json, glob, os
+out = os.environ["OUT_DIR"]
+done = set()
+for jf in glob.glob(os.path.join(out, "**", "results*.json"), recursive=True):
+    try:
+        d = json.load(open(jf))
+    except Exception:
+        continue
+    for t, vals in d.get("results", {}).items():
+        if t.startswith("mmlu_pro_"):
+            continue
+        if t.startswith("mmlu_") and t != "mmlu":
+            continue
+        if any(isinstance(v, float) and not k.endswith("_stderr")
+               for k, v in vals.items() if k != "alias"):
+            done.add(t)
+req = set(os.environ["REQ"].split(",")) - {""}
+print(",".join(sorted(done & req)))
+')
+            if [[ -z "$missing" ]]; then
+                echo "[$(date +%F\ %T)] [GPU${gpu}] skip ${name} — all ${requested_clean} already present" | tee -a "$QLOG"
+                echo "[$(date +%F\ %T)] [GPU${gpu}] done: ${name}" | tee -a "$QLOG"
+                continue
+            fi
+            if [[ -n "$done_tasks" ]]; then
+                echo "[$(date +%F\ %T)] [GPU${gpu}] resume ${name}: skipping done [${done_tasks}], running [${missing}]" | tee -a "$QLOG"
+            fi
+
             extra=()
             if [[ -n "$MMLU_PRO_LIMIT" ]]; then
                 extra+=( --mmlu-pro-limit "$MMLU_PRO_LIMIT" --mmlu-pro-seed "$MMLU_PRO_SEED" )
@@ -122,9 +175,9 @@ for gi in "${!GPU_ARR[@]}"; do
             bash "$SCRIPT" \
                 --model "$model" --protocol "$proto" \
                 --gpu "$gpu" --batch-size "$BATCH_SIZE" \
-                --output "$out" --tasks "$TASKS" \
+                --output "$out" --tasks "$missing" \
                 "${extra[@]}" \
-                2>&1 | tee "$out/run.log"
+                2>&1 | tee -a "$out/run.log"
             echo "[$(date +%F\ %T)] [GPU${gpu}] done: ${name}" | tee -a "$QLOG"
         done
     ) > "$chain_log" 2>&1 &
