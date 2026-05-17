@@ -22,6 +22,17 @@ extracted backbone.
 |--------------------|----------|-----:|---------:|----------:|-----------:|------:|-------:|----:|---------:|
 | Qwen2.5-VL-7B      | Full FT  | −2.1 | −5.7 | −1.0 | −5.0 | −1.2 | −9.4 | — | −1.8 (raw) |
 | **LLaVA-OneVision-7B** | Full FT (open) | −2.2 | **−14.5** | −6.7 | −12.2 | −4.6 | −9.2 | −7.6 | −6.7 (raw) |
+| **Qwen3-VL-8B** (no-think)¹ | Full FT  | — | — | — | — | — | **−2.96** | — | — |
+
+¹ *Qwen3 family is a hybrid-thinking unified model. The chat template
+defaults to `enable_thinking=True`, which prepends a `<think>...</think>`
+trace that breaks IFEval format checkers. The above number uses a patched
+chat template that always emits an empty `<think></think>` block
+(`enable_thinking=False`). Qwen3-8B base under this protocol scores **83.18
+prompt-strict**, matching the Qwen3 tech report's 83.0 within 0.2 pt.
+Qwen3-VL-LM under the same protocol scores **80.22**, leaving a residual
+drop of −2.96 pt — within stderr (1.7) and **3× smaller than the
+Qwen2.5-VL drop**.*
 
 ### Community-default protocol (5/8-shot, no chat template)
 
@@ -48,6 +59,26 @@ Raw scores in percent (eq_bench in raw points, not %). lm-evaluation-harness 0.4
 | IFEval (prompt-strict) | 72.09 | 62.66 | −9.43 |
 | GPQA-Diamond-CoT | 29.29 | — | — |
 | EQ-Bench (raw) | 72.34 | 68.51 | −3.83 |
+
+#### Qwen3-VL-8B pair — instruct protocol (0-shot + chat template, thinking forced off)
+
+| Task | LLM (Qwen3-8B) | VLM-LM (Qwen3-VL-LM) | Δ |
+|---|---:|---:|---:|
+| IFEval prompt-strict | **83.18** | **80.22** | **−2.96** |
+| IFEval inst-strict | 88.49 | 86.57 | −1.92 |
+| IFEval prompt-loose | 85.95 | 83.36 | −2.59 |
+| IFEval inst-loose | 90.41 | 88.61 | −1.80 |
+
+The Qwen3 family's chat template defaults to thinking-on; both LLM and
+VLM-LM are evaluated with the patched chat template (always appends an
+empty `<think></think>` block) for a fair comparison. The 83.18 baseline
+matches the Qwen3 tech report's 83.0 within 0.2 pt — pipeline verified.
+
+**Cross-vendor reading:** Qwen3-VL drops 3× less than Qwen2.5-VL on the
+same metric (−2.96 vs −9.43). The two models differ primarily in
+**QK-RMSNorm** (Qwen3 has it, Qwen2.5 does not), motivating the
+sink-mechanism investigation in
+[`analysis/sibling_diff/`](../analysis/sibling_diff/).
 
 #### Qwen2.5-VL-7B pair — community-default protocol (5/8-shot, no chat template)
 

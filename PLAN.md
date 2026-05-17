@@ -1,5 +1,14 @@
 # Plan — extending the text-degradation study to a defensible paper
 
+> **Status note (2026-05-17)**: The project has bifurcated. The original
+> E-Pull-centric plan (Sections 1–4 below) is on hold. The current active
+> trajectory is the **sink-mechanism investigation** documented in
+> [`analysis/sibling_diff/`](analysis/sibling_diff/) and summarized at the
+> bottom of this file (**"Active trajectory: sink mechanism"**). The sibling
+> pair Qwen3 / Qwen2.5 contrast, the weight-side diagnosis, and the two
+> causal experiments (sink ablation, sink restoration) are the new core
+> story.
+
 The Stage A primary measurement (Qwen2.5-VL-7B → text backbone vs LLM-Instruct,
 + E-Pull merge) is in progress. Three open gaps need closing before the
 study is paper-ready: **phenomenon coverage, absolute-number sanity, and
@@ -268,3 +277,56 @@ with the per-task protocols in `evaluation/text/eval_8tasks.sh`. The known
 absolute parity with OpenCompass would obscure the LLM↔VLM-LM↔merged
 deltas, which are what the paper claims. Where OLL v2 has a number, we
 cross-check (currently: gpqa exact match, ifeval avg-of-strict matches).
+
+---
+
+## Active trajectory: sink mechanism (2026-05-17 onward)
+
+The discovery that **Qwen3-VL preserves IFEval (Δ ≈ −3 pt) while Qwen2.5-VL
+collapses (Δ ≈ −9 pt)** under matched protocols led to a reframing: the
+paper's central scientific claim is now about **why** this asymmetry exists,
+not just **how** to merge text capability back.
+
+### Thesis
+
+> *Instruction-following loss in VLMs is mechanistically an attention-sink
+> corruption problem. VL training perturbs the small subset of weights that
+> carry sink-amplifier signal; QK-RMSNorm architecturally isolates that
+> signal into γ layers that VL updates leave frozen.*
+
+### Paper arc
+
+1. **Phenomenon** — Qwen3 vs Qwen2.5 cross-vendor natural experiment.
+2. **Diagnosis** — weight magnitude (3× larger ΔW in Qwen2.5), spectrum
+   (high-rank, *not* low-rank as LoRA assumes), sink encoding location
+   (input_layernorm γ + k_norm γ in Qwen3; input_layernorm γ only and
+   weaker in Qwen2.5; *not* in W_k projection in either).
+3. **Method (SAS — Sink-Anchored Surgery)** — post-hoc, training-free,
+   single-hyperparameter weight surgery: restore the top-K hidden-dim
+   columns of W_q / W_k / W_v (selected by input_layernorm γ) from the base
+   LLM. ~1% of weights touched, vision-side weights otherwise intact.
+4. **Causal evidence** — three experiments. See
+   [`analysis/sibling_diff/README.md`](analysis/sibling_diff/README.md).
+
+### Stages
+
+| | Status |
+|---|---|
+| **S1**. Confirm Qwen3-VL no-degradation (IFEval, thinking-off) | Done (80.22 vs 83.18; Δ −2.96 pt) |
+| **S2**. Weight-side diagnosis (4 figures, two CSVs) | Done |
+| **S3**. C1 sufficiency: kill γ amplifiers in Qwen3 → IFEval | Running |
+| **S4**. C2 necessity: SAS-restore Qwen2.5-VL-LM → IFEval | Built; pending GPU |
+| **S5**. C3 architectural causality: QK-norm inject + small VL train | Designed |
+| **S6**. Generalize SAS to Phi-3.5-Vision, LLaVA-OneVision, InternVL | Pending |
+| **S7**. Method baselines: TIES/DARE/RegMean/E-Pull on the IFEval recovery task | Pending |
+| **S8**. Writeup | Pending |
+
+### Novelty position vs neighbouring work
+
+Documented in detail in
+[`analysis/sibling_diff/README.md`](analysis/sibling_diff/README.md#method-post-hoc-recovery-sas--sink-anchored-surgery).
+Headline differentiation: prior work using RMSNorm γ
+([WeMask / arXiv 2605.08504](https://arxiv.org/abs/2605.08504)) does
+*activation masking at inference time, in the suppress direction, for
+general LLM improvement*. SAS does *weight-side column restoration,
+post-hoc, in the preserve direction, for VLM-LM recovery*.

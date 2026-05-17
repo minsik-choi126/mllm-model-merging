@@ -7,6 +7,14 @@ experiments.
 The merging method itself is in development and will land under
 [`method/`](method/) when ready.
 
+> **Current research focus** — see [`analysis/sibling_diff/`](analysis/sibling_diff/)
+> for the ongoing investigation of VLM text degradation as an
+> **attention-sink corruption** phenomenon. The cross-vendor natural experiment
+> (Qwen3 with QK-RMSNorm vs Qwen2.5 without) suggests that VL training's
+> damage to instruction-following is concentrated in a small set of
+> sink-encoding weight columns, and that **QK-RMSNorm structurally protects
+> the sink encoding** from being touched by VL updates.
+
 ## Headline finding
 
 VLMs lose text capability across architecture families and training regimes.
@@ -24,13 +32,14 @@ Numbers are VLM-text-backbone − base-LLM, in points (negative = regression).
 ## Layout
 
 ```
-extraction/   VLM → text-only HF model (loader, registry, CLI)
+extraction/                VLM → text-only HF model (loader, registry, CLI)
 evaluation/
-  text/       8-task eval (lm-evaluation-harness)
-  vision/     6-task core eval (VLMEvalKit)
-method/       TBD — merging algorithm
-results/      published numbers + figures
-docs/         design notes
+  text/                    8-task eval (lm-evaluation-harness)
+  vision/                  6-task core eval (VLMEvalKit)
+method/                    TBD — merging algorithm
+analysis/sibling_diff/     Sibling-pair (Qwen2.5↔Qwen3) sink-mechanism study
+results/                   Published numbers + figures
+docs/                      Design notes
 ```
 
 ## Quick start
