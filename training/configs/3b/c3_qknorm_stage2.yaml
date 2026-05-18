@@ -14,11 +14,19 @@ data:
   max_length: 4096
 
 model:
-  pretrained: ckpts/c3/3b/qknorm_align
+  # NOTE: `pretrained` deliberately NOT overridden — inherits from
+  # _base_/model_qwen25_3b_init.yaml (ckpts/c3/init/qwen25vl_3b_text_lm).
+  # The Stage 1 projector + qknorm γ are applied via:
+  #   --pretrain-projector ckpts/c3/3b/qknorm_align
+  # (γ restoration: load_qknorm_state_if_present is called after
+  # inject_qknorm in training/models/loader.py — but it currently loads
+  # from `pretrained`, NOT the projector dir. See TODO.md §5.3 for the
+  # gap; γ continuity across stage1->stage2 still needs a dedicated path
+  # config or an extension to load_qknorm_state_if_present.)
   tune_mm_mlp_adapter: false
   freeze_llm: false
   freeze_projector: false
-  inject_qknorm: true                   # re-attach + load γ from stage-1 ckpt
+  inject_qknorm: true                   # re-attach γ=1; γ continuity see note above
   max_pixels: 451584
   attn_implementation: sdpa
 

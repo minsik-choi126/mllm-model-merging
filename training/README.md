@@ -102,13 +102,18 @@ training stage (so Stage 2 continues the γ learned during Stage 1).
 #   - LLaVA-Mix-665K         (LLaVA-Instruct-150K + image directories) — Stage 2 data
 #   - Edit training/configs/data/*.json with your local paths
 #
-# Hardware: 2× A6000/A100 (per advisor's "2-card LLaVA recipe" guidance)
+# Hardware: ≥ 2× A6000/A100 (scales with NGPU; the driver auto-rescales
+# gradient_accumulation_steps so effective batch stays at 128).
 #
-# Run both variants end-to-end (~3-4 days):
-export CKPT_ROOT=/your/work/dir/c3_3b
-bash training/scripts/run_c3_3b.sh
+# IMPORTANT: this script has known blockers documented in TODO.md §5
+# (Stage 2 ↔ Stage 1 wiring fixes have landed; QK-norm γ continuity at
+# stage1->stage2 and the post-training extract for the qknorm variant
+# still need code work before a full run is meaningful).
 
-# Or one at a time:
+export CKPT_ROOT=/your/work/dir/c3_3b
+NGPU=4 EVAL_GPUS=0,1,2,3 bash training/scripts/run_c3_3b.sh
+
+# Or one variant at a time:
 VARIANT=vanilla bash training/scripts/run_c3_3b.sh
 VARIANT=qknorm  bash training/scripts/run_c3_3b.sh
 ```

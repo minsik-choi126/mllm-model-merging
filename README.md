@@ -8,12 +8,19 @@ The merging method itself is in development and will land under
 [`method/`](method/) when ready.
 
 > **Current research focus** — see [`analysis/sibling_diff/`](analysis/sibling_diff/)
-> for the ongoing investigation of VLM text degradation as an
+> for the investigation of VLM text degradation as an
 > **attention-sink corruption** phenomenon. The cross-vendor natural experiment
 > (Qwen3 with QK-RMSNorm vs Qwen2.5 without) suggests that VL training's
 > damage to instruction-following is concentrated in a small set of
 > sink-encoding weight columns, and that **QK-RMSNorm structurally protects
 > the sink encoding** from being touched by VL updates.
+>
+> **To reproduce from a clean machine**: see [`TODO.md`](TODO.md) for
+> the restart guide. [`scripts/run_full_pipeline.sh`](scripts/run_full_pipeline.sh)
+> orchestrates the analysis matrix (model downloads → text-backbone
+> extraction → weight analysis → C1/C2/E2 ablations → 5-pair IFEval).
+> C3 training (architectural-causality VLM fine-tune) is OFF by
+> default and has known blockers; see TODO.md §5.
 
 ## Headline finding
 

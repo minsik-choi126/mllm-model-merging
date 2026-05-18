@@ -13,7 +13,11 @@ data:
   max_length: 4096
 
 model:
-  pretrained: ckpts/c3/3b/vanilla_align
+  # NOTE: `pretrained` deliberately NOT overridden — inherits from
+  # _base_/model_qwen25_3b_init.yaml (ckpts/c3/init/qwen25vl_3b_text_lm).
+  # The Stage 1 projector is applied via the CLI flag
+  #   --pretrain-projector ckpts/c3/3b/vanilla_align
+  # (see training/train/cli.py + stage2_trainer._load_projector_from_stage1).
   tune_mm_mlp_adapter: false
   freeze_llm: false
   freeze_projector: false

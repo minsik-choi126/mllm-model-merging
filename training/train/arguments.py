@@ -25,6 +25,10 @@ class ModelArgs:
     # roughly H*W (so e.g. 1920*1080 ≈ 2.07M pixels → ≈2580 merged tokens).
     max_pixels: Optional[int] = None                   # None = processor default
     min_pixels: Optional[int] = None                   # None = processor default
+    # C3 architectural-causality experiment: inject QK-RMSNorm modules into
+    # the LLM's attention layers at load time. When True, loader.py adds
+    # per-head q_norm / k_norm (γ=1 init) to every self_attn block.
+    inject_qknorm: bool = False
 
 
 @dataclass
