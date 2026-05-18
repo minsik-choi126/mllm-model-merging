@@ -1,0 +1,10 @@
+{
+  "_comment": "Stage 1 (Align) data manifest. LLaVA-Pretrain-558K (https://huggingface.co/datasets/liuhaotian/LLaVA-Pretrain). Note: HF distributes the source as a JSON array (blip_laion_cc_sbu_558k.json), not JSONL — convert with: python -c \"import json; r=json.load(open('blip_laion_cc_sbu_558k.json')); open('llava_pretrain_558k.jsonl','w').writelines(json.dumps(x)+'\\n' for x in r)\". Images: unzip images.zip into images/.",
+  "sources": [
+    {
+      "task_id": "llava_pretrain_558k",
+      "jsonl": "/131_data/geeho/minsik/data/LLaVA-Pretrain/llava_pretrain_558k.jsonl",
+      "image_root": "/131_data/geeho/minsik/data/LLaVA-Pretrain/images"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+# 3B · LLaVA Stage 2 (full instruction tuning → merge-ready θ⁰).
+#
+# V100x8, fp16. Output directory is the merge-ready initialization that
+# subsequent MERIT branches fork from.
+defaults:
+  - ../_base_/model_qwen25_3b.yaml
+  - ../_base_/data_vflan136.yaml
+
+model:
+  tune_mm_mlp_adapter: false
+  freeze_llm: false
+
+train:
+  output_dir: ckpts/3b/stage2
+  deepspeed: training/train/deepspeed_configs/zero2.json
+  learning_rate: 3.0e-4
+  per_device_train_batch_size: 8
+  gradient_accumulation_steps: 4       # effective batch = 8 * 8 * 4 = 256
+  num_train_epochs: 1.0
+  fp16: true
+  bf16: false
+  max_grad_norm: 1.0
+  weight_decay: 0.001
+  warmup_ratio: 0.03
+  lr_scheduler_type: cosine
+  save_strategy: epoch
+  save_total_limit: 1
+  logging_steps: 10
+  dataloader_num_workers: 4
+  gradient_checkpointing: true
+  run_name: merit-3b-stage2
+  group_by_modality_length: true

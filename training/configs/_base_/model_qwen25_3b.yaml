@@ -1,0 +1,8 @@
+# Qwen2.5-VL-3B-Instruct base model config.
+#
+# Used by the 3B controlled Vision-FLAN study (V100x8, fp16, no flash-attn).
+model:
+  pretrained: Qwen/Qwen2.5-VL-3B-Instruct
+  dtype: float16
+  trust_remote_code: true
+  attn_implementation: sdpa    # flash-attn off on V100

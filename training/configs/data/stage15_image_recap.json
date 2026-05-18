@@ -1,0 +1,10 @@
+{
+  "_comment": "Stage 1.5 data manifest. The reference run used a private 2.86M-sample image-recaption corpus that we cannot redistribute. Substitute with your own image-recaption JSONL (OpenAI-Chat-style: each line has 'messages' + 'image_urls'; see merit/data/openai_chat_jsonl.py). Closest public alternative we recommend: re-run LLaVA-Pretrain-558K for several epochs (route B in joint_stage1_5.yaml's header) — same manifest as configs/data/align_llava_pretrain.json with num_train_epochs bumped to 4-6 in the yaml. Or skip stage 1.5 entirely (route C) and start stage 2 from Qwen/Qwen2.5-VL-7B-Instruct.",
+  "sources": [
+    {
+      "task_id": "your_image_recap_corpus",
+      "jsonl": "/path/to/your/image_recap_corpus/data.jsonl",
+      "image_root": "/path/to/your/image_recap_corpus/images"
+    }
+  ]
+}

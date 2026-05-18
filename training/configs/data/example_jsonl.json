@@ -1,0 +1,16 @@
+{
+  "_comment": "Example manifest for the 'jsonl' dataset adapter. Each source points to a JSONL of LLaVA/ShareGPT-style samples; image paths may be plain files or zip-archived as 'archive.zip#inner.jpg'. Replace the placeholder paths below with your data locations.",
+  "sources": [
+    {
+      "task_id": "your_task_a",
+      "jsonl": "/path/to/your_data/task_a/train.jsonl",
+      "image_root": "/path/to/your_data/task_a/images",
+      "max_samples": 1000
+    },
+    {
+      "task_id": "your_task_b",
+      "jsonl": "/path/to/your_data/task_b/train.jsonl",
+      "image_root": "/path/to/your_data/task_b/images"
+    }
+  ]
+}

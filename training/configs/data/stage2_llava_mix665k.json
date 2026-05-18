@@ -1,0 +1,10 @@
+{
+  "_comment": "Stage 2 data manifest — LLaVA-1.5 mix665k (~665K instruction-tuning samples). The JSON itself is in liuhaotian/LLaVA-Instruct-150K as llava_v1_5_mix665k.json; convert to JSONL (one sample per line). Images come from a mixture of sources (COCO train2017 ~19GB, GQA ~21GB, Visual Genome ~17GB, OCR-VQA ~4GB, TextVQA ~8GB) which must be downloaded separately and unified under image_root with the layout the JSON expects (image path is relative to image_root).",
+  "sources": [
+    {
+      "task_id": "llava_v1_5_mix665k",
+      "jsonl": "/131_data/geeho/minsik/data/LLaVA-Instruct/llava_v1_5_mix665k.jsonl",
+      "image_root": "/131_data/geeho/minsik/data/llava15_images"
+    }
+  ]
+}

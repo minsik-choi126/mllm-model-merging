@@ -1,0 +1,26 @@
+# 3B · LLaVA Stage 1 (projector alignment).
+#
+# V100x8, fp16, no flash-attn. Trains mm_projector only.
+defaults:
+  - ../_base_/model_qwen25_3b.yaml
+  - ../_base_/data_vflan136.yaml
+
+model:
+  tune_mm_mlp_adapter: true
+  freeze_llm: true
+
+train:
+  output_dir: ckpts/3b/stage1
+  deepspeed: training/train/deepspeed_configs/zero2.json
+  learning_rate: 1.0e-3
+  per_device_train_batch_size: 16
+  gradient_accumulation_steps: 1
+  num_train_epochs: 1.0
+  fp16: true
+  bf16: false
+  warmup_ratio: 0.03
+  lr_scheduler_type: cosine
+  save_strategy: epoch
+  logging_steps: 10
+  run_name: merit-3b-stage1
+  group_by_modality_length: false

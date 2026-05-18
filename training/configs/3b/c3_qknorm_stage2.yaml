@@ -1,0 +1,52 @@
+# C3 — QK-norm injected · Stage 2 · 3B
+#
+# Continues from qknorm_align (which saved q_norm/k_norm weights with γ=1
+# alongside the trained projector). Stage 2 unfreezes the LLM and projector,
+# so γ_q and γ_k are now trainable along with the rest. We expect γ to
+# develop heavy-tailed sink amplifier structure similar to Qwen3 natively.
+defaults:
+  - ../_base_/model_qwen25_3b_init.yaml
+
+data:
+  name: jsonl
+  root: training/configs/data/stage2_llava_mix665k.json
+  split: train
+  max_length: 4096
+
+model:
+  pretrained: ckpts/c3/3b/qknorm_align
+  tune_mm_mlp_adapter: false
+  freeze_llm: false
+  freeze_projector: false
+  inject_qknorm: true                   # re-attach + load γ from stage-1 ckpt
+  max_pixels: 451584
+  attn_implementation: sdpa
+
+train:
+  output_dir: ckpts/c3/3b/qknorm_stage2
+  seed: 42
+  optim: adamw_torch
+  learning_rate: 2.0e-5
+  weight_decay: 0.0
+  max_grad_norm: 1.0
+  warmup_ratio: 0.03
+  lr_scheduler_type: cosine
+  per_device_train_batch_size: 4
+  gradient_accumulation_steps: 16
+  num_train_epochs: 1.0
+  max_steps: -1
+  ddp_timeout: 7200
+  bf16: true
+  fp16: false
+  logging_steps: 10
+  save_strategy: epoch
+  save_total_limit: 1
+  dataloader_num_workers: 2
+  gradient_checkpointing: true
+  report_to: none
+  run_name: c3-3b-qknorm-stage2
+  group_by_modality_length: true
+  deepspeed: training/train/deepspeed_configs/zero2.json
+
+merit:
+  r: 0

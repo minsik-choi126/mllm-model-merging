@@ -1,0 +1,48 @@
+# C3 — Vanilla (no QK-norm) · Stage Align · 3B from-scratch init
+#
+# Trains the projector only on LLaVA-Pretrain-558K. Output feeds Stage 2.
+# Used as the baseline for the C3 architectural causality experiment.
+defaults:
+  - ../_base_/model_qwen25_3b_init.yaml
+
+data:
+  name: jsonl
+  root: training/configs/data/align_llava_pretrain.json
+  split: train
+  max_length: 4096
+
+model:
+  tune_mm_mlp_adapter: true
+  freeze_llm: true
+  inject_qknorm: false                  # baseline: no architectural intervention
+  max_pixels: 451584                    # 672×672
+  attn_implementation: sdpa
+
+train:
+  output_dir: ckpts/c3/3b/vanilla_align
+  seed: 42
+  optim: adamw_torch
+  learning_rate: 1.0e-4
+  weight_decay: 0.0
+  max_grad_norm: 1.0
+  warmup_ratio: 0.03
+  lr_scheduler_type: constant_with_warmup
+  per_device_train_batch_size: 8
+  gradient_accumulation_steps: 8        # eff batch = 8 * 2 * 8 = 128 (2 GPUs)
+  num_train_epochs: 1.0
+  max_steps: -1
+  ddp_timeout: 7200
+  bf16: true
+  fp16: false
+  logging_steps: 10
+  save_strategy: epoch
+  save_total_limit: 1
+  dataloader_num_workers: 2
+  gradient_checkpointing: true
+  report_to: none
+  run_name: c3-3b-vanilla-align
+  group_by_modality_length: false
+  deepspeed: training/train/deepspeed_configs/zero2.json
+
+merit:
+  r: 0
